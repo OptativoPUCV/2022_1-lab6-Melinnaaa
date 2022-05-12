@@ -51,12 +51,86 @@ void print_node(Node* n)
   printf("\n");
 }
 
-int is_valid(Node* n)
+void cleanArray(int appears[10])
 {
-  
+  for (int i = 0 ; i < 9 ; i = i + 1)
+  {
+    appears[i] = 0;
+  }
+}
+
+int checkAppears(int appears[10])
+{
+  for (int i = 0 ; i < 9 ; i = i + 1)
+  {
+    if (appears[i] > 1) return 0;
+  }
   return 1;
 }
 
+int checkCols(Node* n)
+{
+  int appears [10];
+  int num;
+  for (int i = 0 ; i < 9 ; i = i + 1)
+  {
+    cleanArray(appears);
+    for (int j = 0 ; j < 9 ; j = j + 1)
+    {
+      num = n->sudo[i][j];
+      appears[num-1] = appears[num-1] + 1;
+    }
+    if (checkAppears(appears) == 0) return 0;
+  }
+  return 1;
+}
+
+int checkFils (Node* n)
+{
+  int appears [10];
+  int num;
+  for (int i = 0 ; i < 9 ; i = i + 1)
+  {
+    cleanArray(appears);
+    for (int j = 0 ; j < 9 ; j = j + 1)
+    {
+      num = n->sudo[j][i];
+      appears[num-1] = appears[num-1] + 1;
+    }
+    if (checkAppears(appears) == 0) return 0;
+  }
+  return 1;
+}
+
+int checkSubMatrix(Node* n)
+{
+  int appears [10];
+  int num;
+  for (int m = 0 ; m < 9 ; m = m + 1)
+  {
+    cleanArray(appears);
+    for (int p = 0 ; p < 9 ; p = p + 1)
+    {
+        int i=3*(m/3) + (p/3);
+        int j=3*(m%3) + (p%3);
+        num = n->sudo[i][j];
+        appears[num-1] = appears[num-1] + 1;
+    }
+    if (checkAppears(appears) == 0) return 0;
+  }
+  return 1;
+}
+
+int is_valid(Node* n)
+{
+  //Se comprueban las filas
+  if (checkFils(n) == 0) return 0;
+  //Se comprueban las columnas
+  if (checkCols(n) == 0) return 0;
+  //Se comprueban las sub-matrices
+  if (checkSubMatrix(n) == 0) return 0;
+  return 1;
+}
 
 List* get_adj_nodes(Node* n)
 {
@@ -75,7 +149,6 @@ List* get_adj_nodes(Node* n)
             Node* adj_node = copy(n);
             pushBack(list, adj_node);
           }
-          n->sudo[i][j] = 0;
         }
       }
     }
@@ -86,15 +159,38 @@ List* get_adj_nodes(Node* n)
 
 int is_final(Node* n)
 {
-  return 0;
+  for (int i = 0; i < 9; i = i + 1)
+  {
+    for (int j = 0 ; j < 9 ; j = j + 1)
+    {
+      if (n->sudo[i][j] == 0) return  0;  
+    }
+  }
+  return 1;
 }
 
 Node* DFS(Node* initial, int* cont)
 {
+  Stack* S = createStack();
+  push(S, initial);
+  *cont = 1;
+  while (*cont != 0)
+  {    
+    Node* n = top(S);
+    pop(S);
+    *cont = *cont - 1;
+    if (is_final(n) == 1) return n;
+    List* adj = get_adj_nodes(n);
+    Node* aux = first(adj);
+    while (aux != NULL)
+    {
+      push(S, aux);
+      *cont = *cont + 1;
+      aux = next(adj);
+    }
+  }
   return NULL;
 }
-
-
 
 /*
 int main( int argc, char *argv[] ){
